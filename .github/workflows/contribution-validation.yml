@@ -1,9 +1,9 @@
-name: Run PyTest
-on: [pull_request, push]
-
+name: Contribution full validation
+on:
+  push:
+    branches: ["validation/full-20261005"]
 permissions:
-  contents: read # to fetch code (actions/checkout)
-
+  contents: read
 jobs:
   build-all:
     runs-on: ubuntu-latest
@@ -19,6 +19,8 @@ jobs:
             numpy-version: '>=1.21,<2.0'
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: 5ccecc68d400d6aca3e204658cd6cc3483db8688
       - run: |
           docker build -f bin/all-py.Dockerfile \
             --build-arg PYTHON_VERSION="${{ matrix.python-version }}" \
@@ -36,6 +38,8 @@ jobs:
       ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: 5ccecc68d400d6aca3e204658cd6cc3483db8688
       - run: |
            docker build -f bin/necessary-py.Dockerfile \
              --build-arg PYTHON_VERSION='3.10' \
@@ -43,3 +47,16 @@ jobs:
       - name: Run tests
         run: |
            docker run gymnasium-necessary-docker pytest tests/test_core.py tests/envs/test_envs.py tests/spaces
+
+  contribution-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: 5ccecc68d400d6aca3e204658cd6cc3483db8688
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: pip install pre-commit build
+      - run: pre-commit run --all-files
+      - run: python -m build
